@@ -1,6 +1,10 @@
-<div class="noteCard">
+<div class="notes">
     <h2>{{link.title}}</h2>
+    {{#if link.note}}
+    <input id="titleinput" placeholder={{link.note.title}} name="title">
+    {{else}}
     <input id="titleinput" name="title">
-    <textarea name="body" id="bodyinput" cols="30" rows="10"></textarea>
-    <button data-id="{{link.id}}" id="savenote">Save Note</button>
+    {{/if}}
+    <textarea name="body" id="bodyinput" cols="30" rows="10">{{link.note.body}}</textarea>
+    <button data-id={{link.id}} id="savenote">Save Note</button>
 </div>

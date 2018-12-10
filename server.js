@@ -59,22 +59,23 @@ app.get("/scrape", function(req, res) {
     $("div.headline").each(function(i, element) {
       // Save an empty result object
       var result = {};
+      console.log("pre result: ", result);
+      const $this = $(this);
 
       // Add the text and href of every link, and save them as properties of the result object
-      result.title = $(this)
-        .children("a")
+      result.title = $this.children("a")
         .text();
-      result.link = $(this)
-        .children("a")
+      result.link = $this.children("a")
         .attr("href");
-      result.summary = $(this)
-        .siblings("div.blurb")
+      result.summary = $this.siblings("div.blurb")
         .text();
+
+      console.log("result: ", result);
       // Create a new Article using the `result` object built from scraping
       db.Article.create(result)
         .then(function(dbArticle) {
           // View the added result in the console
-          // console.log("postDB: ", dbArticle);
+          console.log("postDB: ", dbArticle);
         })
         .catch(function(err) {
           // If an error occurred, log it
@@ -84,8 +85,8 @@ app.get("/scrape", function(req, res) {
 
     // Send a message to the client
     // res.render("index");
-    
-    res.send("Scrape Complete");
+    console.log("all done");
+    // res.json("Scrape Complete");
   });
 });
 
@@ -122,24 +123,37 @@ app.get("/articles/:id", function(req, res) {
   });
 });
 
-// Route for saving/updating an Article's associated Note
+// Update the note
+
 app.post("/articles/:id", function(req, res) {
-  // Create a new note and pass the req.body to the entry
-  db.Note.create(req.body)
-    .then(function(dbNote) {
-      console.log("dbNote._id", dbNote._id);
-      return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
-    })
-    .then(function(dbArticle) {
-      // If we were able to successfully update an Article, send it back to the client
+  console.log("req.body: ", req.body);
+  let title = req.body.title;
+  let body = req.body.body;
+  
+  db.Note.create({
+    title: title,
+    body: body
+  }).then(function(dbNote) {
+    console.log("dbNote: ", dbNote._id);
+    db.Article.findOneAndUpdate({
+      _id: req.params.id
+    }, 
+    {
+      $set: { 
+        note: dbNote._id
+      }
+    }, 
+    { 
+      new: true 
+    }
+    ).then(function(dbArticle){
       console.log("dbArticle: ", dbArticle);
       res.json(dbArticle);
     })
-    .catch(function(err) {
-      // If an error occurred, send it to the client
-      res.json(err);
-    });
+
+  })
 });
+
 
 // Route to clear the database
 

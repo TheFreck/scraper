@@ -59,52 +59,49 @@ $("#back").on("click", function(){
 // Whenever someone clicks a p tag
 $(document).on("click", "p", function() {
   // Empty the notes from the note section
-  $("#notes").empty();
   // Save the id from the p tag
   var thisId = $(this).attr("data-id");
-
   // Now make an ajax call for the Article
+  location.href = `/articles/${thisId}`;
   $.ajax({
     method: "GET",
     url: `/articles/${thisId}`
   })
   .then(function(data) {
-    console.log("data", data);
-    location.href = `/articles/${thisId}`;
-    // if (data.note) {
-    //   $("#dataNote").html = data.note;
-    //   console.log("data: ", data.note);
-    //   $("#titleinput").val(data.note.title);
-    //   $("#bodyinput").val(data.note.body);
-    // }
+    noteInputs(data)
   });
 });
+
+function noteInputs(data){
+  console.log("data: ");
+  $("#titleinput").val(data.title);
+  $("#bodyinput").val(data.body);
+}
 
 // When you click the savenote button
 $(document).on("click", "#savenote", function() {
   // Grab the id associated with the article from the submit button
-  var thisId = `_${$(this).attr("data-id")}`;
-  let title = $("#titleinput").val();
-  let body = $("#bodyinput").val();
-  console.log("id: ", thisId);
-  console.log("title: ", title)
-  console.log("body: ", body)
+  var thisId = $(this).attr("data-id");
+
   // Run a POST request to change the note, using what's entered in the inputs
   $.ajax({
     method: "POST",
-    url: `/articles/${thisId}`,
+    url: "/articles/" + thisId,
     data: {
-      title: title,
-      body: body
+      // Value taken from title input
+      title: $("#titleinput").val(),
+      // Value taken from note textarea
+      body: $("#bodyinput").val()
     }
   })
+    // With that done
     .then(function(data) {
       // Log the response
-      console.log(data);
-      // Empty the notes section
-      $("#notes").empty();
+      console.log("data: ", data);
+      $("#bodyinput").val() = data;
     });
 
+  // Also, remove the values entered in the input and textarea for note entry
   // $("#titleinput").val("");
   // $("#bodyinput").val("");
 });
