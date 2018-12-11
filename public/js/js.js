@@ -1,9 +1,6 @@
-// Grab the articles as a json
 $.getJSON("/articles", function(data) {
   console.log("getJSON gotten: ", data.length);
-  // For each one
   for (var i = 0; i < data.length; i++) {
-    // Display the apropos information on the page
     let id = data[i]._id;
     let title = data[i].title;
     let summary;
@@ -13,11 +10,11 @@ $.getJSON("/articles", function(data) {
       summary = "";
     };
     let link = data[i].link;
-    $("#articles").append(`<p data-id="${id}"> <br/> ${title} <br /> ${summary} ${link}</p>`);
+    $("#articles").append(`<div data-id="${id}"> <h2> ${title} </h2> <p> ${summary} </p> <p> ${link} </p> <br> </div>`);
   }
 });
   
-// To start the scrape
+// Start scraping
 $("#scrape").on("click", function(){
   console.log("scrape");
   $.ajax({
@@ -38,7 +35,7 @@ $("#scrape").on("click", function(){
   })
 })
 
-// To clear out the DB
+// To clear out the article and note collections
 $("#drop").on("click", function(){
   console.log("drop");
   $.ajax({
@@ -56,12 +53,9 @@ $("#back").on("click", function(){
   location.href = "/";
 })
 
-// Whenever someone clicks a p tag
+// clicking on an article
 $(document).on("click", "p", function() {
-  // Empty the notes from the note section
-  // Save the id from the p tag
   var thisId = $(this).attr("data-id");
-  // Now make an ajax call for the Article
   location.href = `/articles/${thisId}`;
   $.ajax({
     method: "GET",
@@ -78,30 +72,22 @@ function noteInputs(data){
   $("#bodyinput").val(data.body);
 }
 
-// When you click the savenote button
+// Save the note
 $(document).on("click", "#savenote", function() {
-  // Grab the id associated with the article from the submit button
   var thisId = $(this).attr("data-id");
 
-  // Run a POST request to change the note, using what's entered in the inputs
+  // Send the note to the back
   $.ajax({
     method: "POST",
     url: "/articles/" + thisId,
     data: {
-      // Value taken from title input
       title: $("#titleinput").val(),
-      // Value taken from note textarea
       body: $("#bodyinput").val()
     }
   })
-    // With that done
-    .then(function(data) {
-      // Log the response
-      console.log("data: ", data);
-      $("#bodyinput").val() = data;
-    });
+  .then(function(data) {
+    console.log("data: ", data);
+    $("#bodyinput").val() = data;
+  });
 
-  // Also, remove the values entered in the input and textarea for note entry
-  // $("#titleinput").val("");
-  // $("#bodyinput").val("");
 });

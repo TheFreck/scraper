@@ -1,14 +1,9 @@
 var express = require("express");
 var logger = require("morgan");
 var mongoose = require("mongoose");
-
-// Our scraping tools
-// Axios is a promised-based http library, similar to jQuery's Ajax method
-// It works on the client and on the server
 var axios = require("axios");
 var cheerio = require("cheerio");
 
-// Require all models
 var db = require("./models");
 
 var PORT = 3005;
@@ -18,12 +13,9 @@ var app = express();
 
 // Configure middleware
 
-// Use morgan logger for logging requests
 app.use(logger("dev"));
-// Parse request body as JSON
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-// Make public a static folder
 app.use(express.static("public"));
 
 // Connect to the Mongo DB
@@ -31,7 +23,6 @@ mongoose.connect("mongodb://localhost/articles", { useNewUrlParser: true });
 
 // Set Handlebars.
 var exphbs = require("express-handlebars");
-
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
@@ -46,23 +37,17 @@ app.get("/", function(req, res) {
   res.render("index");
 })
 
-// A GET route for scraping the echoJS website
+// A GET route for scraping the washington post
 
 app.get("/scrape", function(req, res) {
   res.redirect("/drop");
-  // First, we grab the body of the html with axios
   axios.get("http://www.washingtonpost.com/").then(function(response) {
-    // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(response.data);
 
-    // Now, we grab every h2 within an article tag, and do the following:
     $("div.headline").each(function(i, element) {
-      // Save an empty result object
       var result = {};
-      console.log("pre result: ", result);
       const $this = $(this);
 
-      // Add the text and href of every link, and save them as properties of the result object
       result.title = $this.children("a")
         .text();
       result.link = $this.children("a")
@@ -70,41 +55,33 @@ app.get("/scrape", function(req, res) {
       result.summary = $this.siblings("div.blurb")
         .text();
 
-      console.log("result: ", result);
-      // Create a new Article using the `result` object built from scraping
+      // Create a new Article
       db.Article.create(result)
         .then(function(dbArticle) {
-          // View the added result in the console
-          console.log("postDB: ", dbArticle);
         })
         .catch(function(err) {
-          // If an error occurred, log it
           console.log(err);
         });
     });
 
     // Send a message to the client
-    // res.render("index");
     console.log("all done");
-    // res.json("Scrape Complete");
+    res.redirect("/");
   });
 });
 
 // Route for getting all Articles from the db
 app.get("/articles", function(req, res) {
-  // Grab every document in the Articles collection
   db.Article.find({})
     .then(function(dbArticle) {
-      // If we were able to successfully find Articles, send them back to the client
       res.json(dbArticle);
     })
     .catch(function(err) {
-      // If an error occurred, send it to the client
       res.json(err);
     });
 });
 
-// Route for grabbing a specific Article by id, populate it with it's note
+// Route for grabbing the article to read and comment on
 app.get("/articles/:id", function(req, res) {
   db.Article.findOne({ _id: req.params.id })
   .populate("note")
@@ -143,10 +120,7 @@ app.post("/articles/:id", function(req, res) {
     ).then(function(dbArticle){
       console.log("dbArticle: ", dbArticle);
       res.json(dbArticle);
-    }).catch(err){
-      console.log("err: ", err);
-    }
-
+    }).catch(err);
   })
 });
 
@@ -154,11 +128,23 @@ app.post("/articles/:id", function(req, res) {
 // Route to clear the database
 
 app.get("/drop", function(req, res){
+  notesArray = [];
   db.Article.remove({}, function(err){
     if(err){
-      console.log("drop error: ", err);
+      console.log("article drop error: ", err);
     }else{
-      console.log("collection dropped");
+      console.log("articles dropped");
+    }
+    res.redirect("/drop-notes");
+  });
+});
+
+app.get("/drop-notes", function(req, res){
+  db.Note.remove({}, function(err){
+    if(err){
+      console.log("note drop error: ", err)
+    }else{
+      console.log("notes dropped");
     }
     res.redirect("/");
   });
