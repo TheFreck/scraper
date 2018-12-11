@@ -10,7 +10,7 @@ $.getJSON("/articles", function(data) {
       summary = "";
     };
     let link = data[i].link;
-    $("#articles").append(`<div data-id="${id}"> <h2> ${title} </h2> <p> ${summary} </p> <p> ${link} </p> <br> </div>`);
+    $("#articles").append(`<article data-id="${id}"> <h2> ${title} </h2> <p> ${summary} </p> <p> ${link} </p> </article>`);
   }
 });
   
@@ -54,7 +54,7 @@ $("#back").on("click", function(){
 })
 
 // clicking on an article
-$(document).on("click", "p", function() {
+$(document).on("click", "article", function() {
   var thisId = $(this).attr("data-id");
   location.href = `/articles/${thisId}`;
   $.ajax({
