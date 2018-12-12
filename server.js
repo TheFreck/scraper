@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/articles", { useNewUrlParser: true });
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/articles", { useNewUrlParser: true });
 
 // Set Handlebars.
 var exphbs = require("express-handlebars");
